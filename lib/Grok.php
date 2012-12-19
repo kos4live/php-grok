@@ -121,10 +121,8 @@ class Grok
      */
     public function __construct($patterns = null)
     {
-        /**
-         * Pattern to match %{FOO:bar}
-         * or %{FOO<=3}
-         */
+        // Pattern to match %{FOO:bar} or %{FOO<=3}
+        // currently no predicate supported
         $this->pattern_regex = "/(?!<\\\\)%\{"
             ."(?<name>"
             .   "(?<pattern>[A-z0-9]+)"
@@ -153,22 +151,44 @@ class Grok
         }
     }
 
+    /**
+     * Add one additional pattern
+     *
+     * @param string $name    Name
+     * @param string $pattern Pattern
+     */
     public function addPattern($name, $pattern)
     {
         $this->patterns[$name] = $pattern;
     }
 
+    /**
+     * Add additional patterns.
+     * Use array key as name.
+     *
+     * @param array $patterns Patterns
+     */
     public function addPatterns(array $patterns)
     {
         $this->patterns = array_merge($this->patterns, $patterns);
     }
 
-    public function reset()
+    /**
+     * Reset internal data
+     */
+    protected function reset()
     {
         $this->matchCount = 0;
         $this->fieldMap = array();
     }
 
+    /**
+     * Resolve and merge grok pattern
+     *
+     * @param string $pattern Pattern
+     *
+     * @return string Merged pattern
+     */
     public function resolve($pattern)
     {
         //var_dump('resolve pattern:', $pattern);
@@ -183,20 +203,28 @@ class Grok
                     //var_dump($subPattern);
                 }
                 $pattern = str_replace($match[0], $subPattern, $pattern, $replaced);
-                //var_dump($replaced);
             }
         }
         return $pattern;
     }
 
-    public function parse($pattern, $content)
+    /**
+     * Parse given content with pattern.
+     * Returns matches as named array.
+     *
+     * @param string $pattern Pattern to parse content
+     * @param string $content Content for parsing
+     * @param string $options Options for pattern, for example s (dot all), m (multiline), ... (optional)
+     *
+     * @return array|bool
+     */
+    public function parse($pattern, $content, $options = '')
     {
         $results = array();
         $this->reset();
-        $pattern = "/".str_replace('/', '\/', $this->resolve($pattern))."/s";
-        var_dump('resolved pattern:', $pattern);
+        $pattern = "/".str_replace('/', '\/', $this->resolve($pattern))."/".$options;
+        //var_dump('resolved pattern:', $pattern);
         if (preg_match_all($pattern, $content, $matches, PREG_SET_ORDER)) {
-            //var_dump($matches);
             if (count($matches) > 0 && isset($matches[0]) && is_array($matches[0])) {
                 foreach ($this->fieldMap as $pos => $key) {
                     if (isset($matches[0][$key])) {
