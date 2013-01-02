@@ -1,0 +1,13 @@
+{
+    "name": "kos4live/php-grok",
+    "description": "Simple library to use/parse grok patterns with php",
+    "homepage": "https://github.com/kos4live/php-grok",
+    "type": "library",
+    "license": "MIT",
+    "require": {},
+    "autoload": {
+        "psr-0": {
+            "Grok": "lib/"
+        }
+    }
+}
